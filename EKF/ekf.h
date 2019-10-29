@@ -619,7 +619,9 @@ private:
 	bool canRunMagFusion() const;
 	void checkHaglYawResetReq();
 	float getHaglEstimate() const;
-	void runYawReset();
+	void runInAirYawReset();
+	void runOnGroundYawReset();
+	bool isYawResetAuthorized() const;
 	void runVelPosReset();
 	void checkMagDeclRequired();
 	void checkMagInhibition();
@@ -628,6 +630,7 @@ private:
 	bool canResetMagHeading() const { return !isStrongMagneticDisturbance(); }
 	bool isStrongMagneticDisturbance() const;
 	bool canUse3DMagFusion() const;
+	void controlMagStateOnlyFusion();
 	void checkYawAngleObservability();
 	bool isYawAngleObservable() const { return _yaw_angle_observable; }
 	void checkMagBiasObservability();
