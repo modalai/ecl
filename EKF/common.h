@@ -109,6 +109,7 @@ struct imuSample {
 	float       delta_ang_dt;	///< delta angle integration period (sec)
 	float       delta_vel_dt;	///< delta velocity integration period (sec)
 	uint64_t    time_us;		///< timestamp of the measurement (uSec)
+	bool        clipping_accel[3] {};	///< accelerometer clipping per axis (x, y, z)
 };
 
 struct gpsSample {
@@ -301,8 +302,8 @@ struct parameters {
 	int32_t range_signal_hysteresis_ms{1000}; 	///< minimum duration during which the reported range finder signal quality needs to be non-zero in order to be declared valid (ms)
 
 	// vision position fusion
-        float ev_vel_innov_gate{3.0f};		///< vision velocity fusion innovation consistency gate size (STD)
-        float ev_pos_innov_gate{5.0f};		///< vision position fusion innovation consistency gate size (STD)
+	float ev_vel_innov_gate{3.0f};		///< vision velocity fusion innovation consistency gate size (STD)
+	float ev_pos_innov_gate{5.0f};		///< vision position fusion innovation consistency gate size (STD)
 
 	// optical flow fusion
 	float flow_noise{0.15f};		///< observation noise for optical flow LOS rate measurements (rad/sec)

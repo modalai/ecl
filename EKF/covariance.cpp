@@ -177,36 +177,6 @@ void Ekf::predictCovariance()
 	_accel_vec_filt(1) = alpha * dt_inv * _imu_sample_delayed.delta_vel(1) + beta * _accel_vec_filt(1);
 	_accel_vec_filt(2) = alpha * dt_inv * _imu_sample_delayed.delta_vel(2) + beta * _accel_vec_filt(2);
 
-	if (_ang_rate_mag_filt > _params.acc_bias_learn_gyr_lim
-	    || _accel_mag_filt > _params.acc_bias_learn_acc_lim
-	    || _bad_vert_accel_detected) {
-
-		// store the bias state variances to be reinstated later
-		if (!_accel_bias_inhibit) {
-			_prev_dvel_bias_var(0) = P[13][13];
-			_prev_dvel_bias_var(1) = P[14][14];
-			_prev_dvel_bias_var(2) = P[15][15];
-		}
-
-		_accel_bias_inhibit = true;
-
-	} else {
-		if (_accel_bias_inhibit) {
-			// reinstate the bias state variances
-			P[13][13] = _prev_dvel_bias_var(0);
-			P[14][14] = _prev_dvel_bias_var(1);
-			P[15][15] = _prev_dvel_bias_var(2);
-
-		} else {
-			// store the bias state variances to be reinstated later
-			_prev_dvel_bias_var(0) = P[13][13];
-			_prev_dvel_bias_var(1) = P[14][14];
-			_prev_dvel_bias_var(2) = P[15][15];
-		}
-
-		_accel_bias_inhibit = false;
-	}
-
 	// Don't continue to grow the earth field variances if they are becoming too large or we are not doing 3-axis fusion as this can make the covariance matrix badly conditioned
 	float mag_I_sig;
 
@@ -266,13 +236,62 @@ void Ekf::predictCovariance()
 	daxVar = dayVar = dazVar = sq(dt * gyro_noise);
 	float accel_noise = math::constrain(_params.accel_noise, 0.0f, 1.0f);
 
-	if (_bad_vert_accel_detected) {
-		// Increase accelerometer process noise if bad accel data is detected. Measurement errors due to
-		// vibration induced clipping commonly reach an equivalent 0.5g offset.
-		accel_noise = BADACC_BIAS_PNOISE;
+	dvxVar = dvyVar = dvzVar = sq(dt * accel_noise);
+
+	// Increase accelerometer process noise if bad accel data is detected. Measurement errors due to
+	// vibration induced clipping commonly reach an equivalent 0.5g offset.
+	bool accel_clipping = false;
+
+	// accel clipping X
+	if (_imu_sample_delayed.clipping_accel[0]) {
+		dvxVar = sq(dt * BADACC_BIAS_PNOISE);
+		accel_clipping = true;
 	}
 
-	dvxVar = dvyVar = dvzVar = sq(dt * accel_noise);
+	// accel clipping Y
+	if (_imu_sample_delayed.clipping_accel[1]) {
+		dvyVar = sq(dt * BADACC_BIAS_PNOISE);
+		accel_clipping = true;
+	}
+
+	// accel clipping Z
+	if (_imu_sample_delayed.clipping_accel[2] || _bad_vert_accel_detected) {
+		dvzVar = sq(dt * BADACC_BIAS_PNOISE);
+		accel_clipping = true;
+	}
+
+
+	if (_ang_rate_mag_filt > _params.acc_bias_learn_gyr_lim
+	    || _accel_mag_filt > _params.acc_bias_learn_acc_lim
+	    || _bad_vert_accel_detected
+	    || accel_clipping) {
+
+		// store the bias state variances to be reinstated later
+		if (!_accel_bias_inhibit) {
+			_prev_dvel_bias_var(0) = P[13][13];
+			_prev_dvel_bias_var(1) = P[14][14];
+			_prev_dvel_bias_var(2) = P[15][15];
+		}
+
+		_accel_bias_inhibit = true;
+
+	} else {
+		if (_accel_bias_inhibit) {
+			// reinstate the bias state variances
+			P[13][13] = _prev_dvel_bias_var(0);
+			P[14][14] = _prev_dvel_bias_var(1);
+			P[15][15] = _prev_dvel_bias_var(2);
+
+		} else {
+			// store the bias state variances to be reinstated later
+			_prev_dvel_bias_var(0) = P[13][13];
+			_prev_dvel_bias_var(1) = P[14][14];
+			_prev_dvel_bias_var(2) = P[15][15];
+		}
+
+		_accel_bias_inhibit = false;
+	}
+
 
 	// predict the covariance
 
