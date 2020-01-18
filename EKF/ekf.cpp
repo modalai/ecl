@@ -216,9 +216,11 @@ bool Ekf::initialiseFilter()
 	bool hgt_count_fail = _hgt_counter <= 2u * _obs_buffer_length;
 	bool mag_count_fail = _mag_counter <= 2u * _obs_buffer_length;
 
-	if (hgt_count_fail || mag_count_fail) {
-		return false;
+	// allow for external vision quaternion data for yaw
+	bool ev_yaw_valid = (_params.fusion_mode & MASK_USE_EVYAW) && (_ev_counter > 2u * _obs_buffer_length);
 
+	if (hgt_count_fail || (mag_count_fail && !ev_yaw_valid)) {
+		return false;
 	} else {
 		// reset variables that are shared with post alignment GPS checks
 		_gps_drift_velD = 0.0f;
