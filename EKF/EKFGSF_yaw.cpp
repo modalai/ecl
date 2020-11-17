@@ -79,14 +79,23 @@ void EKFGSF_yaw::update(const imuSample& imu_sample,
 			if (!bad_update) {
 				float total_weight = 0.0f;
 				// calculate weighting for each model assuming a normal distribution
+				const float min_weight = 1E-5f;
+				uint8_t n_weight_clips = 0;
 				for (uint8_t model_index = 0; model_index < N_MODELS_EKFGSF; model_index ++) {
-					_model_weights(model_index) = fmaxf(gaussianDensity(model_index) * _model_weights(model_index), 0.0f);
+					_model_weights(model_index) = gaussianDensity(model_index) * _model_weights(model_index);
+					if (_model_weights(model_index) < min_weight) {
+						n_weight_clips++;
+						_model_weights(model_index) = min_weight;
+					}
 					total_weight += _model_weights(model_index);
 				}
 
 				// normalise the weighting function
-				if (total_weight > 1e-15f) {
+				if (n_weight_clips < N_MODELS_EKFGSF) {
 					_model_weights /= total_weight;
+				} else {
+					// all weights have collapsed due to excessive innovation variances so reset filters
+					initialiseEKFGSF();
 				}
 
 				// Enforce a minimum weighting value. This was added during initial development but has not been needed
