@@ -183,24 +183,16 @@ bool Ekf::initialiseFilter()
 		}
 	}
 
-	// ModalAI - allow EKF2 to init if VIO is present and mag is not if fusion mode is setup
-	bool ev_yaw_invalid = true;
+	// ModalAI - allow EKF2 to init if fusion mode is setup and mag is missing
+	bool use_mag_count = true;
 	if (_params.fusion_mode & MASK_USE_EVYAW) {
-		static uint32_t ev_counter = 0;
-		if (_ext_vision_buffer.pop_first_older_than(_imu_sample_delayed.time_us, &_ev_sample_delayed)) {
-			if (_ev_sample_delayed.time_us != 0)
-			{
-				ev_counter++;
-			}
-		}
-
-		ev_yaw_invalid = (ev_counter <= 2u * _obs_buffer_length);
+		use_mag_count = false;
 	}
 
 	const bool not_enough_baro_samples_accumulated = _baro_counter <= 2u * _obs_buffer_length;
 	const bool not_enough_mag_samples_accumulated = _mag_counter <= 2u * _obs_buffer_length;
 
-	if (not_enough_baro_samples_accumulated || (not_enough_mag_samples_accumulated && ev_yaw_invalid)) {
+	if (not_enough_baro_samples_accumulated || (not_enough_mag_samples_accumulated && use_mag_count)) {
 		return false;
 	}
 	// we use baro height initially and switch to GPS/range/EV finder later when it passes checks.
