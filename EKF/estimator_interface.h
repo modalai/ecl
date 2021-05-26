@@ -315,6 +315,7 @@ public:
 		return _output_new.pos - pos_offset_earth;
 	}
 
+
 	virtual Vector3f getPositionVariance() const = 0;
 
 	// Get the value of magnetic declination in degrees to be saved for use at the next startup

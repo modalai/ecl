@@ -76,6 +76,9 @@ bool Ekf::collect_gps(const gps_message &gps)
 		// Take the current GPS height and subtract the filter height above origin to estimate the GPS height of the origin
 		_gps_alt_ref = 1e-3f * (float)gps.alt + _state.pos(2);
 		_NED_origin_initialised = true;
+
+		PX4_INFO("Established WGS-84 home position, ** enable all ADFS features **");
+
 		_earth_rate_NED = calcEarthRateNED((float)_pos_ref.lat_rad);
 		_last_gps_origin_time_us = _time_last_imu;
 

@@ -361,6 +361,11 @@ struct parameters {
 	// control of on-ground movement check
 	float is_moving_scaler{1.0f};		///< gain scaler used to adjust the threshold for the on-ground movement detection. Larger values make the test less sensitive.
 
+	int ev_airspace{1};
+	int in_out_flag{1};
+	float ev_airspace_hgt{10.0f};
+
+
 	// compute synthetic magnetomter Z value if possible
 	int32_t synthesize_mag_z{0};
 	int32_t check_mag_strength{0};

@@ -301,6 +301,9 @@ public:
 	// This should only be used as a last resort before activating a loss of navigation failsafe
 	void requestEmergencyNavReset() override;
 
+	// ModalAis strategy logic to switch between modalities.
+	void setFusionStrategy(bool badGps);
+
 private:
 	struct {
 		uint8_t velNE_counter;	///< number of horizontal position reset events (allow to wrap if count exceeds 255)
