@@ -303,6 +303,7 @@ public:
 
 	// ModalAis strategy logic to switch between modalities.
 	void setFusionStrategy(bool badGps);
+	void setYawStrategy(bool is_indoor);
 
 private:
 	struct {

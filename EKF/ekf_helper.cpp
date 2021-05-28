@@ -1816,12 +1816,23 @@ void Ekf::setFusionStrategy(bool badGps)
 		_control_status.flags.gps = true;
 	}
 
-	_control_status.flags.ev_yaw = false;
-	_control_status.flags.gps_yaw = false;
-
 	// In v1.11 the rests are broken out PER modality vs a if-else block int hese methods.
 	resetVelocity();
 	resetHorizontalPosition();
 	resetHeight();
+}
+
+void Ekf::setYawStrategy(bool is_indoor)
+{
+	if (is_indoor)
+	{
+		_control_status.flags.ev_yaw = true;
+	}
+	else
+	{
+		_control_status.flags.ev_yaw = false;
+	}
+	// ALWAYS
+	_control_status.flags.gps_yaw = false;
 }
 
